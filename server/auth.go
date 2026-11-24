@@ -40,7 +40,7 @@ func validatePassword(pw string) string {
 		return fmt.Sprintf("密码长度至少 %d 位", minPasswordRunes)
 	}
 	if len(pw) > maxPasswordBytes {
-		return fmt.Sprintf("密码长度不能超过 %d 字节", maxPasswordBytes)
+		return fmt.Sprintf("Senha excede o limite máximo de %d bytes", maxPasswordBytes)
 	}
 	return ""
 }

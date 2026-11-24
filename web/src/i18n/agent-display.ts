@@ -12,6 +12,8 @@ const shippedNames: Record<string, string[]> = {
   asset_mapper: ["资产梳理"],
   pentest: ["渗透测试"],
   retester: ["漏洞复测"],
+  reporter: ["报告撰写"],
+  credential_processor: ["凭据整理"],
 };
 
 export function agentDisplayName(agent: { key: string; name: string }, ui: (key: string) => string): string {
@@ -24,7 +26,7 @@ const shippedDescriptions = new Map(
     .map(([key, pair]) => [pair[0], key]),
 );
 
-export function agentDisplayDescription(agent: { key: string; description?: string }, ui: UITranslate): string {
+export function agentDisplayDescription(agent: { key: string; description?: string }, ui: (key: string) => string): string {
   const text = agent.description ?? "";
   const key = shippedNames[agent.key] ? shippedDescriptions.get(text) : undefined;
   return key ? ui(key) : text;

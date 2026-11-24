@@ -53,7 +53,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { useSideQuestions } from "@/hooks/use-side-questions";
-import { agentDisplayName } from "@/i18n/agent-display";
+import { agentDisplayDescription, agentDisplayName } from "@/i18n/agent-display";
 import { localizedError } from "@/i18n/errors";
 import { useLiveTranslation } from "@/i18n/use-live-translation";
 import { mergeActivities } from "@/lib/activity-merge";
@@ -483,7 +483,7 @@ function DraftChat({
         <div className="text-sm font-medium">
           {translate("overview.startChat", { name: agent ? agentDisplayName(agent, translate) : "Agent" })}
         </div>
-        {agent?.description && <p className="text-muted-foreground max-w-md text-xs">{agent.description}</p>}
+        {agent?.description && <p className="text-muted-foreground max-w-md text-xs">{agentDisplayDescription(agent, translate)}</p>}
       </div>
 
       <Composer
@@ -804,7 +804,7 @@ function ChatView({
   return (
     <SideQuestionWorkspace
       side={side}
-      label={agent?.name ?? conv.agent_key}
+      label={agent ? agentDisplayName(agent, translate) : conv.agent_key}
       composerLayout="inline"
       noSnapshotHint={translate("overview.sideQuestionUnavailable")}
       emptyDescription={translate("overview.sideQuestionHelp")}
@@ -812,7 +812,7 @@ function ChatView({
       {/* header: which agent + live + token meta */}
       <div className="flex min-w-0 flex-wrap items-center gap-2 border-b px-4 py-2.5">
         <Bot className="text-muted-foreground size-4 shrink-0" />
-        <span className="min-w-0 max-w-48 truncate text-sm font-medium">{agent?.name ?? conv.agent_key}</span>
+        <span className="min-w-0 max-w-48 truncate text-sm font-medium">{agent ? agentDisplayName(agent, translate) : conv.agent_key}</span>
         <span className="text-muted-foreground hidden shrink-0 font-mono text-xs sm:inline">{conv.agent_key}</span>
         {agent && !agent.builtin && (
           <Badge variant="outline" className="shrink-0 px-1.5 py-0 text-[10px]">
@@ -820,7 +820,7 @@ function ChatView({
           </Badge>
         )}
         {agent?.description && (
-          <span className="text-muted-foreground min-w-0 truncate text-xs">{agent.description}</span>
+          <span className="text-muted-foreground min-w-0 truncate text-xs">{agentDisplayDescription(agent, translate)}</span>
         )}
         {running && <LiveBadge />}
         <SideQuestionButton side={side} />
@@ -1000,7 +1000,7 @@ const ConversationItem = React.memo(function ConversationItem({
             {showAgent && (
               <>
                 <Bot className="size-3 shrink-0" />
-                <span className="min-w-0 truncate">{agent?.name ?? conv.agent_key}</span>
+                <span className="min-w-0 truncate">{agent ? agentDisplayName(agent, translate) : conv.agent_key}</span>
                 <span className="shrink-0">·</span>
               </>
             )}

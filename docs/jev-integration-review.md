@@ -1,25 +1,25 @@
-# Jev / System One 接入核验
+# Verificação de integração do Jev / System One
 
-核验日期：2026-11-03。协议依据：TypeSafe 官方 `https://api.typesafe.ai/openapi.json`（OpenAPI 3.1.0，API schema 0.2.0）。
+Data da verificação: 2026-11-03. Base do protocolo: `https://api.typesafe.ai/openapi.json` oficial do TypeSafe (OpenAPI 3.1.0, API schema 0.2.0).
 
-## 请求与配置
+## Requisição e configuração
 
-- 使用 Bearer API Key，通过 `POST /v1/systemone` 提交 `model`、`state` 和命名的 `questions`。拦截裁决使用 `choice` 问题及 `allow / ask / deny` criteria。
-- `GET /v1/models` 返回 `models[].name`，不是 OpenAI 的 `data[].id`。模型管理页可加载账号可用模型，默认别名为 `jev-latest`。
-- Base URL 可填服务根地址、`/v1` 或完整 `/v1/systemone` 地址；只接受 HTTP(S)，不接受查询参数和片段。
-- 使用配置中的独立代理；空代理直连，不继承进程代理环境。Jev 配置仅可用于拦截裁判，不可设为聊天或任务模型。
+- Usa Bearer API Key, enviando `model`, `state` e `questions` nomeadas via `POST /v1/systemone`. A decisão de interceptação usa a pergunta `choice` e os critérios `allow / ask / deny`.
+- `GET /v1/models` retorna `models[].name`, e não `data[].id` como no OpenAI. A página de gerenciamento de modelos pode carregar os modelos disponíveis na conta; o alias padrão é `jev-latest`.
+- O Base URL pode ser o endereço raiz do serviço, `/v1` ou o endereço completo `/v1/systemone`; aceita apenas HTTP(S), sem parâmetros de consulta nem fragmentos.
+- Usa um proxy independente definido na configuração; proxy vazio significa conexão direta, sem herdar as variáveis de ambiente de proxy do processo. A configuração do Jev só pode ser usada para o juiz de interceptação, não podendo ser definida como modelo de chat ou de tarefas.
 
-## 裁决与失败处理
+## Decisão e tratamento de falhas
 
-- 校验 `answers.decision` 的类型、裁决值、必填置信度和三个概率字段。置信度及概率必须是 0–1 的有限数字；无效响应进入现有重试/失败策略，不作为有效放行结果。
-- 低于配置阈值的结果转人工审批；证据不完整或截断时，Jev 的 `allow` 转为 `ask`。
-- HTTP 错误、格式错误及取消/超时作为调用失败；生产调用遵守裁判单次超时和重试配置。连接测试及模型列表查询限时 30 秒。
-- 记账使用官方 `usage.input_tokens / output_tokens`；审查记录保留输入和配置摘要。
+- Valida o tipo de `answers.decision`, o valor da decisão, a confiança obrigatória e os três campos de probabilidade. A confiança e as probabilidades devem ser números finitos entre 0 e 1; respostas inválidas entram na política existente de retry/falha e não são tratadas como resultado válido de liberação.
+- Resultados abaixo do limite configurado são encaminhados para aprovação manual; quando as evidências estão incompletas ou truncadas, o `allow` do Jev é convertido em `ask`.
+- Erros HTTP, erros de formato e cancelamento/timeout são tratados como falha de chamada; as chamadas em produção seguem a configuração de timeout único e retry do juiz. O teste de conexão e a consulta da lista de modelos têm limite de 30 segundos.
+- A contabilização usa `usage.input_tokens / output_tokens` oficiais; os registros de auditoria mantêm a entrada e o resumo da configuração.
 
-## 验证范围
+## Escopo de validação
 
-自动测试覆盖模型列表原生协议、代理、URL 规范化、正常裁决、异常响应、低置信度、证据截断、使用量和管理接口接线；前端类型检查、静态导出和现有前端 API 回归测试亦纳入发布验证。
+Os testes automatizados cobrem o protocolo nativo da lista de modelos, proxy, normalização de URL, decisão normal, respostas anômalas, baixa confiança, truncamento de evidências, uso e integração da interface de gerenciamento; a verificação de tipos do frontend, a exportação estática e os testes de regressão da API existente do frontend também fazem parte da validação de release.
 
-**未使用真实 Jev API Key 调用生产服务。** 虚拟机没有保存 Jev profile，当前启用的裁判为其他模型。协议与模拟服务测试不能证明实际账号权限、余额、服务可达性或模型判定准确率；上线使用前仍应保存 Jev 配置并执行连接测试和业务样本验收。
+**Não foram feitas chamadas ao serviço de produção com uma API Key real do Jev.** A máquina virtual não possui um perfil Jev salvo, e o juiz atualmente habilitado é outro modelo. Testes de protocolo e com serviço simulado não comprovam permissões reais da conta, saldo, acessibilidade do serviço ou precisão das decisões do modelo; antes do uso em produção, ainda é necessário salvar a configuração do Jev e executar o teste de conexão e a aceitação com amostras de negócio.
 
-本次新版本包含 Jev 功能及上述修复。历史 `v0.3.25` 不含 Jev 接入；将虚拟机恢复到该版本不会部署 Jev 功能。
+Esta nova versão inclui a funcionalidade do Jev e as correções acima. A versão histórica `v0.3.25` não contém a integração do Jev; restaurar a máquina virtual para essa versão não implantará a funcionalidade do Jev.

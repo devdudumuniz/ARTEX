@@ -59,16 +59,16 @@ func terminalText(ctx context.Context, term *harness.Terminal, tr *runTrace) (st
 	if aborted {
 		_, short, _, ok := AbortReason(ctx)
 		if !ok {
-			short = "未能取得取消原因"
+			short = "Não foi possível obter a causa do cancelamento"
 		}
 		stage := "执行过程中"
 		switch reason {
 		case harness.ReasonAbortedStreaming:
-			stage = "模型输出阶段"
+			stage = "Etapa de saída do modelo"
 		case harness.ReasonAbortedTools:
-			stage = "工具执行阶段"
+			stage = "Etapa de execução de ferramentas"
 		}
-		sum = "（运行被中断：" + short + "；停在" + stage + progressSuffix(term, tr) + "，未完成）"
+		sum = "（Execução interrompida: " + short + "; parou em " + stage + progressSuffix(term, tr) + ", não concluído）"
 	} else if reason == harness.ReasonMaxTurns || reason == harness.ReasonTimeout {
 		sum = "（达到运行预算上限(" + string(reason) + ")，已收尾写回事实" + progressSuffix(term, tr) + "；本次无文字总结）"
 	} else {
@@ -138,7 +138,7 @@ func terminalReasonHint(reason harness.TerminalReason) string {
 func progressSuffix(term *harness.Terminal, tr *runTrace) string {
 	var parts []string
 	if term.Turns > 0 {
-		parts = append(parts, fmt.Sprintf("%d 轮", term.Turns))
+		parts = append(parts, fmt.Sprintf("%d rodadas", term.Turns))
 	}
 	if !tr.startedAt.IsZero() {
 		parts = append(parts, roundDur(time.Since(tr.startedAt)))
@@ -146,7 +146,7 @@ func progressSuffix(term *harness.Terminal, tr *runTrace) string {
 	if len(parts) == 0 {
 		return ""
 	}
-	return "，已运行 " + strings.Join(parts, " / ")
+	return ", executado " + strings.Join(parts, " / ")
 }
 
 func roundDur(d time.Duration) string {

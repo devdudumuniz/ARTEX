@@ -1650,7 +1650,7 @@ func (s *Server) testLLM(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		if apiKey == "" {
-			writeJSON(w, 200, map[string]any{"ok": false, "error": "未提供 API Key"})
+			writeJSON(w, 200, map[string]any{"ok": false, "error": "Nenhuma chave de API fornecida"})
 			return
 		}
 		if model == "" {
@@ -1689,14 +1689,44 @@ func (s *Server) testLLM(w http.ResponseWriter, r *http.Request) {
 	// API Key 解析优先级：表单输入 > 指定 profile 存的 key > 全局配置的 key。
 	// 已存 profile 的 key 不回传浏览器，所以测试已存配置时表单为空，需从 DB 取。
 	// 会话头名同理：表单未带时用已存 profile 的值兜底。
-	if req.ProfileID != nil && (cfg.APIKey == "" || cfg.SessionHeaderKey == "") {
-		if p, err := s.m.pg.ProfileByID(*req.ProfileID); err == nil && p != nil {
-			if cfg.APIKey == "" {
-				cfg.APIKey = p.APIKey
+	// base_url/model/proxy 也需从 profile 兜底：测试已存配置时客户端可能只传 profile_id。
+	if req.ProfileID != nil {
+		p, err := s.m.pg.ProfileByID(*req.ProfileID)
+		if err != nil || p == nil {
+			writeJSON(w, 200, map[string]any{"ok": false, "error": "Profile especificado não existe ou foi excluído"})
+			return
+		}
+		// BUG FIX: Previously ConfigFrom was called with empty provider → defaulted to
+		// Anthropic → non-OpenAI providers (DeepSeek, Zhipu) tested as Anthropic.
+		// Now we use profileConfig() which properly loads ALL persisted fields.
+		if pcfg, ok := s.profileConfig(p); ok {
+			cfg = pcfg // Use fully loaded profile config
+		} else if strings.TrimSpace(p.APIKey) == "" {
+			writeJSON(w, 200, map[string]any{"ok": false, "error": "Profile não tem chave de API configurada"})
+			return
+		}
+		// Apply user overrides on top (non-empty req values take precedence).
+		if strings.TrimSpace(req.APIKey) != "" {
+			cfg.APIKey = req.APIKey
+		}
+		if strings.TrimSpace(req.Model) != "" {
+			cfg.Model = req.Model
+		}
+		if strings.TrimSpace(req.BaseURL) != "" {
+			cfg.BaseURL = strings.TrimRight(strings.TrimSpace(req.BaseURL), "/")
+			// Normalize format based on explicit base URL
+			if cfg.Format == llm.FormatAnthropic {
+				if strings.Contains(strings.ToLower(cfg.BaseURL), "deepseek.com") || strings.Contains(strings.ToLower(cfg.BaseURL), "bigmodel.cn") {
+					cfg.Format = llm.FormatOpenAI
+				}
 			}
-			if cfg.SessionHeaderKey == "" {
-				cfg.SessionHeaderKey = p.SessionHeaderKey
-			}
+		}
+		if strings.TrimSpace(req.Proxy) != "" {
+			cfg.Proxy = req.Proxy
+		}
+		if cfg.APIKey == "" {
+			writeJSON(w, 200, map[string]any{"ok": false, "error": "Profile não tem chave de API configurada e nenhuma fornecida"})
+			return
 		}
 	}
 	if cfg.APIKey == "" {

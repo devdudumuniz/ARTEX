@@ -14,6 +14,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { agentDisplayName } from "@/i18n/agent-display";
 import { useUITranslation } from "@/i18n/use-ui-translation";
 import { api } from "@/lib/api";
 import type { Agent, MCPServer, MCPTool } from "@/lib/types";
@@ -419,7 +420,7 @@ export default function MCPPage() {
                         checked={(visibility[s.id] ?? []).includes(a.id)}
                         onCheckedChange={() => toggleVisibility(s.id, a.id, a.name)}
                       />
-                      {a.name}
+                      {agentDisplayName(a, ui)}
                     </label>
                   ))}
                 </div>

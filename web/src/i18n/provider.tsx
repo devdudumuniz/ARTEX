@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { type ReactNode, useEffect, useState } from "react";
 
 import { I18nextProvider } from "react-i18next";
@@ -11,6 +12,7 @@ export function AppI18nProvider({ children }: { children: ReactNode }) {
   // A per-tree instance keeps prerenders isolated. The first browser render
   // matches static HTML; saved preferences are applied after hydration.
   const [instance] = useState(createAppI18n);
+  const pathname = usePathname();
 
   useEffect(() => {
     const updateDocument = () => {
@@ -36,6 +38,12 @@ export function AppI18nProvider({ children }: { children: ReactNode }) {
       window.removeEventListener("storage", syncPreference);
     };
   }, [instance]);
+
+  useEffect(() => {
+    document.documentElement.lang = resolveLocale(instance.resolvedLanguage);
+    document.title = instance.t("meta.title");
+    document.querySelector('meta[name="description"]')?.setAttribute("content", instance.t("meta.description"));
+  }, [instance, pathname]);
 
   return <I18nextProvider i18n={instance}>{children}</I18nextProvider>;
 }

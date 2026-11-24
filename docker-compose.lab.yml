@@ -1,0 +1,90 @@
+name: artex-lab
+
+services:
+  artex:
+    image: artex:ptbr-local
+    container_name: artex-lab-app
+    pull_policy: never
+    user: "1000:1000"
+    read_only: true
+    privileged: false
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    command:
+      - "-addr"
+      - ":8787"
+      - "-proxy"
+      - "127.0.0.1:8788"
+    environment:
+      TZ: America/Bahia
+      HOME: /tmp
+      ARTEX_PG_DSN: ${ARTEX_PG_DSN:?Defina ARTEX_PG_DSN em .env.lab.local}
+      ANTHROPIC_API_KEY: ""
+      OPENAI_API_KEY: ""
+      GEMINI_API_KEY: ""
+      ARTEX_LLM_PROVIDER: ""
+      ARTEX_LLM_MODEL: ""
+      ARTEX_LLM_BASE_URL: ""
+      ARTEX_LLM_PROXY: ""
+      ARTEX_HTTP_USER_AGENT: ""
+    ports:
+      - "127.0.0.1:18787:8787"
+    volumes:
+      - type: bind
+        source: ./data
+        target: /app/data
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./skills
+        target: /app/skills
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./jwt.key
+        target: /app/jwt.key
+        read_only: true
+        bind:
+          create_host_path: false
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,size=256m
+    networks:
+      - artex-lab-net
+      - dm-infra-postgres-net
+    cpus: "2.0"
+    mem_limit: 2g
+    mem_reservation: 512m
+    pids_limit: 256
+    logging:
+      driver: local
+      options:
+        max-size: "20m"
+        max-file: "5"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8787/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: on-failure:5
+    labels:
+      com.dmtech.project: "artex-lab"
+      com.dmtech.category: "dm-security"
+      com.dmtech.environment: "lab"
+      com.dmtech.version: "pt-BR-local"
+
+networks:
+  artex-lab-net:
+    name: artex-lab-net
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.enable_icc: "false"
+    ipam:
+      config:
+        - subnet: 172.30.87.0/24
+          gateway: 172.30.87.1
+  dm-infra-postgres-net:
+    external: true

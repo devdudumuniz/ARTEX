@@ -12,6 +12,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { type AppLocale, LOCALE_STORAGE_KEY, resolveLocale } from "@/i18n/config";
 
+const LOCALE_LABELS: Record<AppLocale, string> = {
+  "pt-BR": "Português (Brasil)",
+  en: "English",
+  "zh-CN": "简体中文",
+};
+
 export function LanguageSwitcher() {
   const { t, i18n } = useTranslation();
   const locale = resolveLocale(i18n.resolvedLanguage);
@@ -33,15 +39,18 @@ export function LanguageSwitcher() {
           aria-label={t("language.change")}
         >
           <Languages className="size-4" aria-hidden="true" />
-          <span className="hidden sm:inline">{locale === "en" ? "English" : "简体中文"}</span>
+          <span className="hidden sm:inline">{LOCALE_LABELS[locale]}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" aria-label={t("language.label")}>
-        <DropdownMenuItem onClick={() => selectLanguage("zh-CN")} aria-current={locale === "zh-CN"}>
-          简体中文
+        <DropdownMenuItem onClick={() => selectLanguage("pt-BR")} aria-current={locale === "pt-BR"}>
+          Português (Brasil)
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => selectLanguage("en")} aria-current={locale === "en"}>
           English
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => selectLanguage("zh-CN")} aria-current={locale === "zh-CN"}>
+          简体中文
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

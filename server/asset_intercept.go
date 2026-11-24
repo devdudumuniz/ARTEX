@@ -143,11 +143,11 @@ func validateAssetInterceptRuleReq(req *assetInterceptRuleReq) error {
 		// free-form, no format check
 	case "exact_ip":
 		if net.ParseIP(req.Pattern) == nil {
-			return fmt.Errorf("exact_ip 不是有效 IP 地址：%s", req.Pattern)
+			return fmt.Errorf("exact_ip não é um endereço IP válido: %s", req.Pattern)
 		}
 	case "cidr":
 		if _, _, err := net.ParseCIDR(req.Pattern); err != nil {
-			return fmt.Errorf("cidr 不是有效网段（形如 192.168.0.0/16）：%s", req.Pattern)
+			return fmt.Errorf("cidr não é uma rede válida (exemplo: 192.168.0.0/16): %s", req.Pattern)
 		}
 	default:
 		return fmt.Errorf("kind 无效：%s", req.Kind)
